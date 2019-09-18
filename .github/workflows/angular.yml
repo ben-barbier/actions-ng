@@ -1,12 +1,19 @@
 name: Angular CI
 
 on: [push]
+# préciser on master
+
+# https://github.com/JamesIves/github-pages-deploy-action/blob/master/entrypoint.sh
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Log
+        run: |
+          echo GITHUB_ACTOR: ${GITHUB_ACTOR}
+          echo GITHUB_REPOSITORY: ${GITHUB_REPOSITORY}
       - uses: actions/checkout@v1
       - uses: actions/setup-node@v1
         with:
@@ -17,9 +24,17 @@ jobs:
           npm run lint
           npm run build
       - name: Deploy
-        uses: JamesIves/github-pages-deploy-action@master
+        run: |
+          git config --global user.name ${GITHUB_ACTOR}
+          git config --global user.email ${GITHUB_ACTOR}@users.noreply.github.com
+          git checkout --orphan gh-pages2
+          git add dist/actions-ng/
+          git commit -m ":rocket: deploy !"
+          git push -f ${REPOSITORY_PATH} gh-pages2
+        #uses: JamesIves/github-pages-deploy-action@master
         env:
           ACCESS_TOKEN: ${{ secrets.GH_TOKEN }}
-          BASE_BRANCH: master
-          BRANCH: gh-pages
-          FOLDER: dist/actions-ng/
+          REPOSITORY_PATH: https://${ACCESS_TOKEN}@github:com/${GITHUB_REPOSITORY}:git
+          #BASE_BRANCH: master
+          #BRANCH: gh-pages
+          #FOLDER: dist/actions-ng/
